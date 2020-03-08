@@ -47,6 +47,8 @@ for url in all_links:
     html_soup = bs(response.text, 'html.parser')
     # maybe .text
     lyrics_cont = html_soup.find_all('div', class_ = 'song_body-lyrics')
+    if not lyrics_cont:
+        continue
     lyrics = str(lyrics_cont[0]).split("\n")
     barney = [x for x in lyrics if "Barney:" in x]
     if barney:

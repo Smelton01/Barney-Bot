@@ -1,53 +1,46 @@
 import tweepy
 import time
+import pdb
+from config import get_api
 # NOTE: I put my keys in the keys.py to separate them
 # from this main file.
-# Please refer to keys_format.py to see the format.
-from keys import *
 
-# NOTE: flush=True is just for running this script
-# with PythonAnywhere's always-on task.
-# More info: https://help.pythonanywhere.com/pages/AlwaysOnTasks/
-print('this is my twitter bot', flush=True)
+def retrieve_saved_ids(file_name):
+    try:
+        f_read = open(file_name, "a+")
+        cont = f_read.readlines()
+    finally:
+        f_read.close()
+    return [line.strip("\n") for line in cont]
 
-auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
-api = tweepy.API(auth)
+def retweet_fn(api, file_name):
+    print('Searching for juicy tits.... I mean tweets!!!!', flush=True)
 
-FILE_NAME = 'last_seen_id.txt'
+    results = api.search("#HIMYM", count=5)
+    results_id = [result.id for result in results]
+    saved = retrieve_saved_ids(file_name)
 
-def retrieve_last_seen_id(file_name):
-    f_read = open(file_name, 'r')
-    last_seen_id = int(f_read.read().strip())
-    f_read.close()
-    return last_seen_id
+    for id in results_id:
+        #pdb.set_trace()
+        if id not in saved:
+            print('New tweet found!!', flush=True)
+            print('Retweeting...', flush=True)
 
-def store_last_seen_id(last_seen_id, file_name):
-    f_write = open(file_name, 'w')
-    f_write.write(str(last_seen_id))
-    f_write.close()
-    return
+            text = api.get_status(id).text
+            #api.update_status(text)
+            print(text)
+            f_write = open(file_name, "a+")
+            f_write.write("\n" + str(id))
+            f_write.close()
 
-def reply_to_tweets():
-    print('retrieving and replying to tweets...', flush=True)
-    # DEV NOTE: use 1060651988453654528 for testing.
-    last_seen_id = 1060651988453654528 #retrieve_last_seen_id("1060651988453654528") #FILE_NAME)
-    # NOTE: We need to use tweet_mode='extended' below to show
-    # all full tweets (with full_text). Without it, long tweets
-    # would be cut off.
-    mentions = api.mentions_timeline(
-                        last_seen_id,
-                        tweet_mode='extended')
-    for mention in reversed(mentions):
-        print(str(mention.id) + ' - ' + mention.full_text, flush=True)
-        last_seen_id = mention.id
-        store_last_seen_id(last_seen_id, FILE_NAME)
-        if '#helloworld' in mention.full_text.lower():
-            print('found #helloworld!', flush=True)
-            print('responding back...', flush=True)
-            api.update_status('@' + mention.user.screen_name +
-                    '#HelloWorld back to you!', mention.id)
 
-while True:
-    reply_to_tweets()
-    time.sleep(15)
+def main():
+    SAVED_ID = "saved.txt"
+    api = get_api()
+    while True:
+        retweet_fn(api, SAVED_ID)
+        #reply_to_tweets()
+        time.sleep(30)
+
+if __name__ == "__main__":
+    main()
