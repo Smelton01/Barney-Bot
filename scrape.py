@@ -20,32 +20,37 @@ links = [i for i in lnk if "href" in i]
 #except for S08 for some reason
 whole_links = ["https://genius.com/albums/How-i-met-your-mother/Season-{}".format(i) for i in range(1, 9)]
 
-soup_season = bs(response_season.text, 'html.parser')
-link_season = soup_season.find_all('div', class_ = 'column_layout-column_span column_layout-column_span--primary')
-#len(ly_season = 47) from 3, every other item
-ep_content = []
-for x in link_season: 
-    ep_content.append(x)
-#something[3] is the pilot stuff, look at 
-ep_content = str(ep_content[1]).split("\n")
-link_location = [i for i in ep_content if "href" in i]
+all_links = []
 
-# All season 1 links
-season_one = []
-for class_ in link_location:
-     season_one.append(re.search(r"(?<=href=\").*?(?=\">)", class_).group(0))
+for link in whole_links:
+    response_season = get(link)
+    soup_season = bs(response_season.text, 'html.parser')
+    link_season = soup_season.find_all('div', class_ = 'column_layout-column_span column_layout-column_span--primary')
+    #len(ly_season = 47) from 3, every other item
+    ep_content = []
+    for x in link_season: 
+        ep_content.append(x)
+    #something[3] is the pilot stuff, look at 
+    ep_content = str(ep_content).split("\n")
+    link_location = [i for i in ep_content if "href" in i]
 
-#[0] #all episodes here
+    # All season 1 links
+    for class_ in link_location:
+        all_links.append(re.search(r"(?<=href=\").*?(?=\">)", class_).group(0))
+
+#[0] #all episodes heregit 
 
 barney_lines = []
-for url in season_one:
+for url in all_links:
     response = get(url)
 
     html_soup = bs(response.text, 'html.parser')
     # maybe .text
     lyrics_cont = html_soup.find_all('div', class_ = 'song_body-lyrics')
     lyrics = str(lyrics_cont[0]).split("\n")
-    barney_lines.append([x for x in lyrics if "Barney:" in x])
+    barney = [x for x in lyrics if "Barney:" in x]
+    if barney:
+        barney_lines.append(barney)
 
 html_items = r"<.*>"
 click_item = r"ng-click.*\)\""
@@ -54,10 +59,11 @@ rando = r"pending.*\">"
 clean = re.compile(r"{}|{}|{}".format(html_items, click_item, rando))
 
 for i, line in enumerate(barney_lines):
-    #barney_lines[i] = re.sub(clean, '', line)
-    print(barney_lines[i])
+    barney_lines[i] = re.sub(clean, '', str(line))
+    #print(barney_lines[i])
 print(len(barney_lines))
 
+#robots vs wrestlers, im glad u asked ted
 
 
 
