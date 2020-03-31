@@ -3,8 +3,9 @@
 
 import tweepy
 from keys import *
+import os
 
 def get_api():
-    auth = tweepy.OAuthHandler(API_KEY, API_SECRET)
-    auth.set_access_token(ACCESS_KEY, ACCESS_SECRET)
+    auth = tweepy.OAuthHandler(os.getenv(API_key), os.getenv(API_secret))
+    auth.set_access_token(os.getenv(token_key), os.getenv(token_secret))
     return tweepy.API(auth)

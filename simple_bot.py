@@ -1,6 +1,5 @@
 import tweepy
 import time
-import pdb
 from config import get_api
 from rnn_bot import pred
 
@@ -33,7 +32,7 @@ class MyStreamListener(tweepy.StreamListener):
         time.sleep(15 * 60)
 
 def main():
-    SAVED_ID = "saved.txt"
+    #SAVED_ID = "saved.txt"
     api = get_api()
     listener = MyStreamListener(api)
     stream = tweepy.Stream(api.auth, listener)
@@ -44,5 +43,5 @@ def main():
         #reply_to_tweets()
       #  time.sleep(30)
 
-if __name__ == "__main__":
-    main()
+#if __name__ == "__main__":
+#    main()
