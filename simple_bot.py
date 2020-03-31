@@ -2,45 +2,47 @@ import tweepy
 import time
 import pdb
 from config import get_api
+from rnn_bot import pred
+
 # NOTE: I put my keys in the keys.py to separate them
 # from this main file.
 
-def retrieve_saved_ids(file_name):
-    try:
-        f_read = open(file_name, "a+")
-        cont = f_read.readlines()
-    finally:
-        f_read.close()
-    return [line.strip("\n") for line in cont]
+class MyStreamListener(tweepy.StreamListener):
+    def __init__(self, api):
+        self.api = api
+        self.me = api.me()
 
-def retweet_fn(api, file_name):
-    print('Searching for juicy tits.... I mean tweets!!!!', flush=True)
+    def on_status(self, tweet):
+        try:
+            print(f"{tweet.user.name}:{tweet.text}")
+            pred(tweet.text.split()[1])
+        except:
+            print("Error word not in vocab!!")
+            pass
+        if not tweet.retweet: #self.me.screen_name in tweet.text:
+            print('Found some juicy tits.... I mean tweets!!!!', flush=True)
+            time.sleep(3*60)
+            tweet.retweet()
+            #self.api.update_status(tweet.text, " ...Copied")
+            #retweet_fn(tweet)
+        print(f"{tweet.user.name}:{tweet.text}")
 
-    results = api.search("#HIMYM", count=5)
-    results_id = [result.id for result in results]
-    saved = retrieve_saved_ids(file_name)
-
-    for id in results_id:
-        #pdb.set_trace()
-        if id not in saved:
-            print('New tweet found!!', flush=True)
-            print('Retweeting...', flush=True)
-
-            text = api.get_status(id).text
-            #api.update_status(text)
-            print(text)
-            f_write = open(file_name, "a+")
-            f_write.write("\n" + str(id))
-            f_write.close()
-
+    def on_error(self, status):
+        print(status)
+        print("Error detected")
+        time.sleep(15 * 60)
 
 def main():
     SAVED_ID = "saved.txt"
     api = get_api()
-    while True:
-        retweet_fn(api, SAVED_ID)
+    listener = MyStreamListener(api)
+    stream = tweepy.Stream(api.auth, listener)
+    stream.filter(track=["HIMYM"], languages=["en"])
+    
+    #while True:
+     #   retweet_fn(api, SAVED_ID)
         #reply_to_tweets()
-        time.sleep(30)
+      #  time.sleep(30)
 
 if __name__ == "__main__":
     main()
