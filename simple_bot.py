@@ -2,6 +2,7 @@ import tweepy
 import time
 from config import get_api
 from rnn_bot import pred
+import random
 
 # NOTE: I put my keys in the keys.py to separate them
 # from this main file.
@@ -10,21 +11,23 @@ class MyStreamListener(tweepy.StreamListener):
     def __init__(self, api):
         self.api = api
         self.me = api.me()
+        self.num = 1
 
     def on_status(self, tweet):
         try:
-            print(f"{tweet.user.name}:{tweet.text}")
-            pred(tweet.text.split()[1])
-        except:
-            print("Error word not in vocab!!")
-            pass
-        if not tweet.retweet: #self.me.screen_name in tweet.text:
-            print('Found some juicy tits.... I mean tweets!!!!', flush=True)
-            time.sleep(3*60)
+            #print(f"{tweet.user.name}:{tweet.text}")
+            print("Found some juicy tits... I mean tweets!!!")
+            starts = [["You", "know", "what"], ["I","mean"], ["Let", "me", "tell"], ["Bro"],["Some", "day"], ["If", "you", "ask", "me"]] 
+            #if not tweet.retweet:
+            print("Retweeting!!!")
             tweet.retweet()
-            #self.api.update_status(tweet.text, " ...Copied")
-            #retweet_fn(tweet)
-        print(f"{tweet.user.name}:{tweet.text}")
+            status = pred(random.choice(starts))
+            self.api.update_status(status[:270]+" #HIMYM"+"...")
+            print("Done!!")
+        except Exception as e:
+            print("Failed to predict!! ", e)
+            pass
+        time.sleep(60*60)
 
     def on_error(self, status):
         print(status)
@@ -36,12 +39,7 @@ def main():
     api = get_api()
     listener = MyStreamListener(api)
     stream = tweepy.Stream(api.auth, listener)
+    print("Connected... starting stream.")
     stream.filter(track=["HIMYM"], languages=["en"])
-    
-    #while True:
-     #   retweet_fn(api, SAVED_ID)
-        #reply_to_tweets()
-      #  time.sleep(30)
-
-#if __name__ == "__main__":
-#    main()
+   
+main()

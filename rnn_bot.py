@@ -19,7 +19,7 @@ import re
 # clone project
 
 train_file='lines.txt'
-seq_size=20
+seq_size=12
 batch_size=16
 embedding_size=64
 lstm_size=64
@@ -31,7 +31,7 @@ checkpoint_path='~/checkpoint'
 def pre_text():
     """Input text file"""
 
-    with open("lines.txt", 'r') as f:
+    with open("lines.txt", 'r', encoding="utf-8") as f:
         text = f.readlines()
 
     """Clean text to remove extra crap"""
@@ -53,7 +53,7 @@ def pre_text():
     # Remove scene and mood descriptions (in brackets)
     crap = re.compile(r"\(.*\)|\[.*\]|\*.*\*|^\*.*$|^.*\*$|^song.*$|^-.*$")
     text_data = [re.sub(crap, '', line).strip() for line in clean_text if re.sub(crap, '', line)]
-    with open("clean_text.txt", "w") as f:
+    with open("clean_text.txt", "w", encoding="utf-8") as f:
         for l in text_data:
             f.write(l+" ")
 
@@ -201,10 +201,8 @@ def predict(device, net, words, n_vocab, vocab_to_int, int_to_vocab, top_k=5):
     print(' '.join(words))
 
 #run(10)
+
 """
-
-#ls checkpoint
-
 def predict2(words, device, net, n_vocab, vocab_to_int, int_to_vocab, top_k=5):
     net.eval()
     state_h, state_c = net.zero_state(1)
@@ -229,15 +227,16 @@ def predict2(words, device, net, n_vocab, vocab_to_int, int_to_vocab, top_k=5):
         choice = np.random.choice(choices[0])
         words.append(int_to_vocab[choice])
 
-    print(' '.join(words))
-
+    return ' '.join(words)
 
 def pred(prefix):
     int_to_vocab, vocab_to_int, n_vocab, in_text, out_text = pre_text()
     model = RNNModule(n_vocab, seq_size,
                     embedding_size, lstm_size)
-    model.load_state_dict(torch.load("./checkpoint/model-26000.pth", map_location="cpu"))
+    print("Model done!!")
+    model.load_state_dict(torch.load("./model-26000.pth", map_location="cpu"))
     dev = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     model = model.to(dev)
-    predict2(prefix, device=dev, net=model, n_vocab=n_vocab, vocab_to_int=vocab_to_int, int_to_vocab=int_to_vocab)
-    print("DONE")
+    print("predicting....")
+    return predict2(prefix, device=dev, net=model, n_vocab=n_vocab, vocab_to_int=vocab_to_int, int_to_vocab=int_to_vocab)
+    #print("DONE")
